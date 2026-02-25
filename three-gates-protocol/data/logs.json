@@ -1,0 +1,15 @@
+[
+  {
+    "visitorId": "d5391e4b-35f2-4813-840a-dc50b9e9e819",
+    "timestamp": "2026-02-24T09:55:36.392Z",
+    "device": "Desktop",
+    "browser": "Google Chrome",
+    "gateSelected": "I",
+    "switched": false,
+    "firstReactionTime": 24.32,
+    "secondReactionTime": 7.67,
+    "ip": "::1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+    "serverTimestamp": "2026-02-24T09:55:36.457Z"
+  }
+]

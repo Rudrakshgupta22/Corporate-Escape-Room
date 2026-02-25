@@ -1,0 +1,12 @@
+{
+  "name": "three-gates-protocol",
+  "version": "1.0.0",
+  "description": "The Three Gates Protocol — Behavioral Screening Interface",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}

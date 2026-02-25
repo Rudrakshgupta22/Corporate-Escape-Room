@@ -1,0 +1,468 @@
+/* ── Reset & Base ──────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg:        #000000;
+  --green:     #00ff88;
+  --green-dim: #00bb60;
+  --red:       #ff0033;
+  --white:     #e0ffe8;
+  --gray:      #1a1a1a;
+  --font:      'Courier New', Courier, monospace;
+
+  --flicker-dur: 0.08s;
+  --gate-glow: 0 0 12px var(--green), 0 0 28px rgba(0,255,136,0.35);
+  --gate-glow-hover: 0 0 20px var(--green), 0 0 52px rgba(0,255,136,0.55);
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--green);
+  font-family: var(--font);
+  font-size: clamp(13px, 1.5vw, 16px);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Scanlines ─────────────────────────────────────────────────────────────── */
+.scanlines {
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 3px,
+    rgba(0,0,0,0.18) 3px,
+    rgba(0,0,0,0.18) 4px
+  );
+  pointer-events: none;
+  z-index: 900;
+  animation: scanMove 8s linear infinite;
+}
+
+@keyframes scanMove {
+  0%   { background-position: 0 0; }
+  100% { background-position: 0 200px; }
+}
+
+/* ── Glitch Overlay ────────────────────────────────────────────────────────── */
+.glitch-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 800;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.glitch-overlay.active {
+  animation: glitchFlash 0.2s steps(1) infinite;
+  opacity: 1;
+}
+.glitch-overlay.intense {
+  animation: glitchIntense 0.1s steps(1) infinite;
+  opacity: 1;
+}
+
+@keyframes glitchFlash {
+  0%  { background: rgba(255,0,51,0.04); clip-path: inset(10% 0 80% 0); }
+  25% { background: rgba(0,255,136,0.03); clip-path: inset(50% 0 30% 0); }
+  50% { background: transparent; clip-path: none; }
+  75% { background: rgba(255,0,51,0.05); clip-path: inset(70% 0 5% 0); }
+  100%{ background: transparent; clip-path: none; }
+}
+
+@keyframes glitchIntense {
+  0%  { background: rgba(255,0,51,0.12); clip-path: inset(2% 0 85% 0); transform: translateX(-3px); }
+  15% { background: rgba(0,255,136,0.08); clip-path: inset(40% 0 40% 0); transform: translateX(4px); }
+  30% { background: transparent; clip-path: none; transform: none; }
+  45% { background: rgba(255,0,51,0.10); clip-path: inset(75% 0 2% 0); transform: translateX(-2px); }
+  60% { background: rgba(0,255,136,0.06); clip-path: inset(20% 0 60% 0); transform: translateX(3px); }
+  75% { background: transparent; transform: none; clip-path: none; }
+  90% { background: rgba(255,0,51,0.09); clip-path: inset(55% 0 25% 0); transform: translateX(-4px); }
+ 100% { background: transparent; clip-path: none; transform: none; }
+}
+
+/* ── Phase Container ───────────────────────────────────────────────────────── */
+.phase {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.7s ease;
+  z-index: 1;
+  padding: 2rem;
+}
+
+.phase.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.phase.fade-out {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+
+/* ── Phase 1 — Terminal ────────────────────────────────────────────────────── */
+.terminal-box {
+  width: 100%;
+  max-width: 680px;
+  padding: 2.5rem 2rem;
+  border: 1px solid rgba(0,255,136,0.2);
+  background: rgba(0, 20, 10, 0.5);
+  backdrop-filter: blur(2px);
+}
+
+.boot-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.boot-line {
+  font-size: clamp(12px, 1.4vw, 15px);
+  color: var(--green);
+  opacity: 0;
+  white-space: pre;
+  animation: lineAppear 0.05s ease forwards;
+}
+
+.boot-line.dim  { color: var(--green-dim); }
+.boot-line.red  { color: var(--red); }
+.boot-line.sep  { color: rgba(0,255,136,0.25); margin: 0.4rem 0; }
+.boot-line.warn { color: var(--white); letter-spacing: 0.08em; }
+
+@keyframes lineAppear {
+  to { opacity: 1; }
+}
+
+/* Blinking cursor */
+.cursor::after {
+  content: '_';
+  animation: blink 0.7s step-end infinite;
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+/* ── Phase 2 — Gates ───────────────────────────────────────────────────────── */
+.phase2-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2.5rem;
+  width: 100%;
+  max-width: 900px;
+}
+
+.directive {
+  font-size: clamp(13px, 1.6vw, 18px);
+  letter-spacing: 0.12em;
+  color: var(--white);
+  text-align: center;
+  min-height: 1.6em;
+}
+
+/* Gates grid */
+.gates {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  width: 100%;
+}
+
+@media (max-width: 600px) {
+  .gates {
+    grid-template-columns: 1fr;
+    max-width: 320px;
+  }
+}
+
+.gate {
+  position: relative;
+  background: transparent;
+  border: 1px solid var(--green);
+  color: var(--green);
+  font-family: var(--font);
+  font-size: clamp(14px, 1.8vw, 20px);
+  letter-spacing: 0.22em;
+  padding: 2.2rem 1rem;
+  cursor: pointer;
+  box-shadow: var(--gate-glow);
+  transition: box-shadow 0.25s ease, color 0.25s ease, border-color 0.25s ease, transform 0.15s ease;
+  text-transform: uppercase;
+  outline: none;
+  overflow: hidden;
+}
+
+.gate::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(0,255,136,0.04) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.gate:hover::before { opacity: 1; }
+
+.gate:hover {
+  box-shadow: var(--gate-glow-hover);
+  border-color: #00ffaa;
+  color: #00ffaa;
+  animation: gateGlitch 0.35s steps(2) 1;
+}
+
+@keyframes gateGlitch {
+  0%   { transform: translateX(0); }
+  25%  { transform: translateX(-3px) skewX(-2deg); }
+  50%  { transform: translateX(3px) skewX(1deg); }
+  75%  { transform: translateX(-1px); }
+  100% { transform: translateX(0); }
+}
+
+.gate:focus-visible {
+  outline: 1px dashed var(--green);
+  outline-offset: 4px;
+}
+
+.gate.selected {
+  border-color: var(--red);
+  color: var(--red);
+  box-shadow: 0 0 12px var(--red), 0 0 28px rgba(255,0,51,0.3);
+}
+
+/* ── Decision Panel ────────────────────────────────────────────────────────── */
+.decision-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.4rem;
+  text-align: center;
+  width: 100%;
+  max-width: 520px;
+}
+
+.decision-msg {
+  font-size: clamp(12px, 1.4vw, 14px);
+  color: var(--green-dim);
+  letter-spacing: 0.05em;
+  line-height: 1.7;
+}
+
+.decision-sub {
+  font-size: clamp(13px, 1.5vw, 15px);
+  color: var(--white);
+  letter-spacing: 0.1em;
+}
+
+.decision-btns {
+  display: flex;
+  gap: 2rem;
+}
+
+.btn-choice {
+  background: transparent;
+  border: 1px solid var(--green);
+  color: var(--green);
+  font-family: var(--font);
+  font-size: clamp(13px, 1.5vw, 15px);
+  letter-spacing: 0.2em;
+  padding: 0.9rem 2.6rem;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+  outline: none;
+}
+
+.btn-choice:hover {
+  background: rgba(0,255,136,0.08);
+  box-shadow: 0 0 14px rgba(0,255,136,0.4);
+}
+
+.btn-choice:focus-visible {
+  outline: 1px dashed var(--green);
+  outline-offset: 4px;
+}
+
+/* ── Phase 3 — Reveal ──────────────────────────────────────────────────────── */
+.reveal-box {
+  width: 100%;
+  max-width: 620px;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.reveal-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.reveal-line {
+  font-size: clamp(13px, 1.5vw, 16px);
+  color: var(--white);
+  opacity: 0;
+  animation: lineAppear 0.05s ease forwards;
+  letter-spacing: 0.05em;
+}
+
+.reveal-line.accent { color: var(--red); font-size: clamp(14px, 1.7vw, 18px); }
+.reveal-line.blank  { min-height: 0.8rem; }
+
+/* Stats panel */
+.stats-panel {
+  border-top: 1px solid rgba(0,255,136,0.2);
+  padding-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.stat-label {
+  font-size: clamp(10px, 1.2vw, 12px);
+  color: var(--green-dim);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.stat-value {
+  font-size: clamp(12px, 1.4vw, 14px);
+  color: var(--green);
+  letter-spacing: 0.1em;
+}
+
+/* ── Phase 4 — Final ───────────────────────────────────────────────────────── */
+#phase4 {
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.final-text {
+  max-width: 560px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  z-index: 2;
+}
+
+.final-line {
+  font-size: clamp(13px, 1.6vw, 17px);
+  color: var(--white);
+  opacity: 0;
+  animation: lineAppear 0.05s ease forwards;
+  letter-spacing: 0.06em;
+}
+.final-line.big {
+  font-size: clamp(16px, 2vw, 22px);
+  color: var(--green);
+  letter-spacing: 0.18em;
+}
+
+/* Poster */
+.poster-wrap {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  opacity: 0;
+  transition: opacity 1.2s ease;
+  z-index: 10;
+}
+
+.poster-wrap.show {
+  opacity: 1;
+}
+
+.poster-wrap img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.55;
+  filter: saturate(0.7) brightness(0.6);
+}
+
+.poster-overlay {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.2rem;
+  text-align: center;
+  padding: 2rem;
+}
+
+.poster-title {
+  font-size: clamp(24px, 5vw, 52px);
+  color: var(--green);
+  letter-spacing: 0.3em;
+  text-shadow: 0 0 24px var(--green), 0 0 60px rgba(0,255,136,0.5);
+  animation: flicker 4s linear infinite;
+}
+
+.poster-sub {
+  font-size: clamp(11px, 1.5vw, 14px);
+  color: var(--white);
+  letter-spacing: 0.18em;
+  max-width: 420px;
+  line-height: 1.8;
+}
+
+.enter-btn {
+  display: inline-block;
+  margin-top: 1rem;
+  border: 1px solid var(--green);
+  color: var(--green);
+  font-family: var(--font);
+  font-size: clamp(13px, 1.5vw, 15px);
+  letter-spacing: 0.22em;
+  padding: 1rem 3rem;
+  text-decoration: none;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: var(--gate-glow);
+}
+
+.enter-btn:hover {
+  background: rgba(0,255,136,0.1);
+  box-shadow: var(--gate-glow-hover);
+}
+
+/* Flicker animation */
+@keyframes flicker {
+  0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { opacity: 1; }
+  20%, 24%, 55% { opacity: 0.6; }
+}
+
+/* Utility */
+.hidden {
+  display: none !important;
+}
+
+/* Scrollbar (fallback, should not be visible) */
+::-webkit-scrollbar { display: none; }

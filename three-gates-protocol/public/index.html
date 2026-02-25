@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>THREE GATES PROTOCOL — Behavioral Screening Interface</title>
+    <meta name="description" content="A classified behavioral evaluation interface. Entry is screened." />
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+    <!-- Scanline overlay -->
+    <div class="scanlines" aria-hidden="true"></div>
+
+    <!-- Glitch overlay -->
+    <div class="glitch-overlay" id="glitchOverlay" aria-hidden="true"></div>
+
+    <!-- ── PHASE 1: Boot Sequence ───────────────────────────────────────── -->
+    <section class="phase active" id="phase1">
+        <div class="terminal-box" id="terminalBox">
+            <div class="boot-lines" id="bootLines"></div>
+        </div>
+    </section>
+
+    <!-- ── PHASE 2: Gate Selection ─────────────────────────────────────── -->
+    <section class="phase" id="phase2">
+        <div class="phase2-inner">
+            <p class="directive" id="directiveText"></p>
+            <div class="gates" id="gatesContainer">
+                <button class="gate" id="gate1" data-gate="I" aria-label="Select Gate I">GATE I</button>
+                <button class="gate" id="gate2" data-gate="II" aria-label="Select Gate II">GATE II</button>
+                <button class="gate" id="gate3" data-gate="III" aria-label="Select Gate III">GATE III</button>
+            </div>
+            <div class="decision-panel hidden" id="decisionPanel">
+                <p class="decision-msg" id="decisionMsg"></p>
+                <p class="decision-sub" id="decisionSub"></p>
+                <div class="decision-btns">
+                    <button class="btn-choice" id="btnStay">STAY</button>
+                    <button class="btn-choice" id="btnSwitch">SWITCH</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── PHASE 3: Psychological Reveal ───────────────────────────────── -->
+    <section class="phase" id="phase3">
+        <div class="reveal-box" id="revealBox">
+            <div class="reveal-lines" id="revealLines"></div>
+            <div class="stats-panel hidden" id="statsPanel">
+                <div class="stat-row">
+                    <span class="stat-label">FIRST RESPONSE TIME</span>
+                    <span class="stat-value" id="statFirst">—</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">DECISION STABILITY</span>
+                    <span class="stat-value" id="statStability">—</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">BEHAVIORAL PROFILE</span>
+                    <span class="stat-value" id="statProfile">—</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── PHASE 4: Final Reveal ────────────────────────────────────────── -->
+    <section class="phase" id="phase4">
+        <div class="final-text" id="finalText"></div>
+        <div class="poster-wrap hidden" id="posterWrap">
+            <img src="../../poster.png" alt="Escape Room 2026 Poster" id="posterImg" />
+            <div class="poster-overlay">
+                <p class="poster-title">ESCAPE ROOM 2026</p>
+                <p class="poster-sub">THE ROOM DOES NOT CARE ABOUT YOUR INSTINCTS.</p>
+                <a href="https://forms.gle/ptrTsC3mp59sVbdr6" class="enter-btn" id="enterBtn" target="_blank"
+                    rel="noopener noreferrer">ENTER THE ROOM</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Hidden audio elements -->
+    <audio id="ambientAudio" src="ambient.mp3" loop preload="none"></audio>
+    <audio id="glitchAudio" preload="none">
+        <!-- Inline glitch sound generated via Web Audio API in script.js -->
+    </audio>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
