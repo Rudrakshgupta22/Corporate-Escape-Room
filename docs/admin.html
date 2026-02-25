@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ADMIN — Three Gates Protocol</title>
+    <style>
+        /* ── Reset ─────────────────────────────────────────── */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #000000;
+            --surface: #080f0a;
+            --border: rgba(0, 255, 136, 0.18);
+            --green: #00ff88;
+            --green-dim: #00aa55;
+            --red: #ff0033;
+            --white: #d8ffe8;
+            --gray: #1a1a1a;
+            --font: 'Courier New', Courier, monospace;
+        }
+
+        html,
+        body {
+            background: var(--bg);
+            color: var(--green);
+            font-family: var(--font);
+            font-size: clamp(12px, 1.4vw, 14px);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Scanlines */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(to bottom,
+                    transparent 0px, transparent 3px,
+                    rgba(0, 0, 0, 0.14) 3px, rgba(0, 0, 0, 0.14) 4px);
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        /* ── Layout ────────────────────────────────────────── */
+        .shell {
+            max-width: 1160px;
+            margin: 0 auto;
+            padding: 2.5rem 1.8rem 4rem;
+        }
+
+        /* ── Header ────────────────────────────────────────── */
+        header {
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1.4rem;
+            margin-bottom: 2.4rem;
+        }
+
+        .header-tag {
+            font-size: 10px;
+            letter-spacing: 0.3em;
+            color: var(--green-dim);
+            margin-bottom: 0.4rem;
+        }
+
+        h1 {
+            font-size: clamp(18px, 3vw, 28px);
+            letter-spacing: 0.26em;
+            color: var(--green);
+            text-shadow: 0 0 18px rgba(0, 255, 136, 0.4);
+        }
+
+        .header-sub {
+            margin-top: 0.5rem;
+            font-size: 11px;
+            color: var(--green-dim);
+            letter-spacing: 0.12em;
+        }
+
+        /* ── Stats Grid ─────────────────────────────────────── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1.2rem;
+            margin-bottom: 2.8rem;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 1.4rem 1.2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .stat-card:hover {
+            border-color: rgba(0, 255, 136, 0.45);
+            box-shadow: 0 0 18px rgba(0, 255, 136, 0.1);
+        }
+
+        .stat-card .label {
+            font-size: 10px;
+            letter-spacing: 0.22em;
+            color: var(--green-dim);
+            text-transform: uppercase;
+        }
+
+        .stat-card .value {
+            font-size: clamp(20px, 3vw, 28px);
+            color: var(--green);
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+            letter-spacing: 0.06em;
+        }
+
+        .stat-card .unit {
+            font-size: 10px;
+            color: var(--green-dim);
+            letter-spacing: 0.1em;
+        }
+
+        .stat-card.highlight .value {
+            color: var(--red);
+            text-shadow: 0 0 10px rgba(255, 0, 51, 0.35);
+        }
+
+        /* ── Section Title ──────────────────────────────────── */
+        .section-title {
+            font-size: 11px;
+            letter-spacing: 0.28em;
+            color: var(--green-dim);
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+            padding-bottom: 0.4rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* ── Gate Bar Chart ─────────────────────────────────── */
+        .gate-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            margin-bottom: 2.8rem;
+            max-width: 560px;
+        }
+
+        .bar-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .bar-label {
+            width: 68px;
+            font-size: 11px;
+            letter-spacing: 0.18em;
+            color: var(--green-dim);
+            flex-shrink: 0;
+        }
+
+        .bar-track {
+            flex: 1;
+            height: 10px;
+            background: rgba(0, 255, 136, 0.07);
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            background: var(--green);
+            box-shadow: 0 0 8px rgba(0, 255, 136, 0.5);
+            width: 0%;
+            transition: width 1.1s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .bar-count {
+            width: 36px;
+            text-align: right;
+            font-size: 11px;
+            color: var(--green);
+        }
+
+        /* ── Table ──────────────────────────────────────────── */
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: clamp(10px, 1.2vw, 12px);
+        }
+
+        thead th {
+            text-align: left;
+            padding: 0.7rem 0.9rem;
+            font-size: 10px;
+            letter-spacing: 0.2em;
+            color: var(--green-dim);
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        tbody td {
+            padding: 0.65rem 0.9rem;
+            color: var(--white);
+            border-bottom: 1px solid rgba(0, 255, 136, 0.06);
+            white-space: nowrap;
+        }
+
+        tbody tr:hover td {
+            background: rgba(0, 255, 136, 0.04);
+        }
+
+        .td-gate {
+            color: var(--green);
+            font-weight: bold;
+        }
+
+        .td-switch {
+            color: var(--red);
+        }
+
+        .td-stay {
+            color: var(--green-dim);
+        }
+
+        /* ── State messages ─────────────────────────────────── */
+        .loading,
+        .error {
+            font-size: 12px;
+            letter-spacing: 0.14em;
+            color: var(--green-dim);
+            padding: 2rem 0;
+        }
+
+        .error {
+            color: var(--red);
+        }
+
+        /* ── Refresh Button ─────────────────────────────────── */
+        .refresh-btn {
+            margin-top: 2rem;
+            display: inline-block;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--green-dim);
+            font-family: var(--font);
+            font-size: 11px;
+            letter-spacing: 0.2em;
+            padding: 0.6rem 1.8rem;
+            cursor: pointer;
+            transition: border-color 0.2s, color 0.2s;
+        }
+
+        .refresh-btn:hover {
+            border-color: var(--green);
+            color: var(--green);
+        }
+
+        /* ── Footer ──────────────────────────────────────────── */
+        footer {
+            margin-top: 3rem;
+            border-top: 1px solid var(--border);
+            padding-top: 1rem;
+            font-size: 10px;
+            color: rgba(0, 255, 136, 0.2);
+            letter-spacing: 0.18em;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="shell">
+
+        <header>
+            <p class="header-tag">CLASSIFIED // INTERNAL ACCESS ONLY</p>
+            <h1>THREE GATES PROTOCOL</h1>
+            <p class="header-sub">BEHAVIORAL ANALYTICS DASHBOARD &nbsp;|&nbsp; ADMIN VIEW</p>
+        </header>
+
+        <div id="appContent">
+            <p class="loading" id="loadingMsg">Fetching session data...</p>
+        </div>
+
+        <footer>SYSTEM // THREE GATES PROTOCOL &nbsp;|&nbsp; RESTRICTED ACCESS</footer>
+
+    </div>
+
+    <script>
+        'use strict';
+
+        // ── Read key from URL ────────────────────────────────────────────────────────
+        const params = new URLSearchParams(window.location.search);
+        const KEY = params.get('key') || '';
+
+        function fmt(n) { return n == null ? '—' : n; }
+        function fmtMs(n) { return n == null ? '—' : n.toFixed(2) + 's'; }
+        function fmtPct(n) { return n == null ? '—' : n + '%'; }
+
+        function renderPage(data) {
+            const total = data.totalVisits || 0;
+            const gateMax = Math.max(data.gateI, data.gateII, data.gateIII, 1);
+
+            const html = `
+      <!-- ── Summary Stats ────────────────────────────────────── -->
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card">
+          <span class="label">Total Visits</span>
+          <span class="value">${fmt(data.totalVisits)}</span>
+        </div>
+        <div class="stat-card">
+          <span class="label">Unique Visitors</span>
+          <span class="value">${fmt(data.uniqueVisitors)}</span>
+        </div>
+        <div class="stat-card">
+          <span class="label">Switch Rate</span>
+          <span class="value">${fmtPct(data.switchPercent)}</span>
+          <span class="unit">SWITCHED GATE</span>
+        </div>
+        <div class="stat-card">
+          <span class="label">Stay Rate</span>
+          <span class="value">${fmtPct(data.stayPercent)}</span>
+          <span class="unit">COMMITTED</span>
+        </div>
+        <div class="stat-card">
+          <span class="label">Avg First Reaction</span>
+          <span class="value">${fmtMs(data.avgFirstReactionTime)}</span>
+          <span class="unit">SECONDS</span>
+        </div>
+        <div class="stat-card highlight">
+          <span class="label">Avg Second Reaction</span>
+          <span class="value">${fmtMs(data.avgSecondReactionTime)}</span>
+          <span class="unit">SECONDS</span>
+        </div>
+      </div>
+
+      <!-- ── Gate Distribution ────────────────────────────────── -->
+      <p class="section-title">Gate Distribution</p>
+      <div class="gate-bars" id="gateBars">
+        <div class="bar-row">
+          <span class="bar-label">GATE I</span>
+          <div class="bar-track"><div class="bar-fill" data-pct="${((data.gateI / gateMax) * 100).toFixed(1)}" style="width:0%"></div></div>
+          <span class="bar-count">${data.gateI}</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label">GATE II</span>
+          <div class="bar-track"><div class="bar-fill" data-pct="${((data.gateII / gateMax) * 100).toFixed(1)}" style="width:0%"></div></div>
+          <span class="bar-count">${data.gateII}</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label">GATE III</span>
+          <div class="bar-track"><div class="bar-fill" data-pct="${((data.gateIII / gateMax) * 100).toFixed(1)}" style="width:0%"></div></div>
+          <span class="bar-count">${data.gateIII}</span>
+        </div>
+      </div>
+
+      <!-- ── Recent Sessions ──────────────────────────────────── -->
+      <p class="section-title">Recent Sessions (Last 20)</p>
+      ${renderTable(data.recentLogs || [])}
+
+      <button class="refresh-btn" onclick="loadData()">REFRESH DATA</button>
+    `;
+
+            document.getElementById('appContent').innerHTML = html;
+
+            // Animate bars after render
+            requestAnimationFrame(() => {
+                document.querySelectorAll('.bar-fill').forEach(el => {
+                    el.style.width = el.dataset.pct + '%';
+                });
+            });
+        }
+
+        function renderTable(logs) {
+            if (!logs.length) {
+                return '<p class="loading">No session data recorded.</p>';
+            }
+
+            const rows = logs.map(log => {
+                const ts = log.timestamp ? new Date(log.timestamp).toLocaleString() : '—';
+                const switchedCell = log.switched
+                    ? '<td class="td-switch">SWITCHED</td>'
+                    : '<td class="td-stay">STAYED</td>';
+
+                return `<tr>
+        <td>${ts}</td>
+        <td class="td-gate">GATE ${escHtml(log.gateSelected || '—')}</td>
+        ${switchedCell}
+        <td>${log.firstReactionTime != null ? log.firstReactionTime + 's' : '—'}</td>
+        <td>${log.secondReactionTime != null ? log.secondReactionTime + 's' : '—'}</td>
+        <td>${escHtml(log.device || '—')}</td>
+        <td>${escHtml(log.browser || '—')}</td>
+        <td style="color:rgba(0,255,136,0.35);font-size:10px">${escHtml((log.visitorId || '').slice(0, 16))}…</td>
+      </tr>`;
+            }).join('');
+
+            return `
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>TIMESTAMP</th>
+              <th>GATE</th>
+              <th>DECISION</th>
+              <th>1ST REACT</th>
+              <th>2ND REACT</th>
+              <th>DEVICE</th>
+              <th>BROWSER</th>
+              <th>VISITOR ID</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
+        }
+
+        function escHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        async function loadData() {
+            document.getElementById('appContent').innerHTML =
+                '<p class="loading" id="loadingMsg">Fetching session data...</p>';
+
+            try {
+                const res = await fetch(`/admin-data?key=${encodeURIComponent(KEY)}`);
+                if (res.status === 403) {
+                    document.getElementById('appContent').innerHTML =
+                        '<p class="error">403 FORBIDDEN — Invalid access key.</p>';
+                    return;
+                }
+                if (!res.ok) throw new Error('Server error.');
+                const data = await res.json();
+                renderPage(data);
+            } catch (err) {
+                document.getElementById('appContent').innerHTML =
+                    `<p class="error">FETCH ERROR: ${err.message}</p>`;
+            }
+        }
+
+        // ── Boot ────────────────────────────────────────────────────────────────────
+        loadData();
+    </script>
+</body>
+
+</html>
