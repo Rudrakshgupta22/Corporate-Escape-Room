@@ -99,7 +99,8 @@ app.get('/poster.png', (req, res) => {
 app.get('/admin', (req, res) => {
     const key = req.query.key || '';
     if (key !== ADMIN_SECRET_KEY) {
-        return res.status(403).send('403 FORBIDDEN — Invalid access key.');
+        // Instead of 403, serve the login page
+        return res.sendFile(path.join(__dirname, 'public', 'login.html'));
     }
     res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
