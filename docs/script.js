@@ -344,7 +344,7 @@ async function runPhase4() {
 
     const lines = [
         { text: 'If this interface unsettled you...', cls: 'final-line' },
-        { text: 'The real test will break you.', cls: 'final-line big' },
+        { text: 'CORPORATE ESCAPE ROOM', cls: 'final-line big' },
     ];
 
     for (const { text, cls } of lines) {
