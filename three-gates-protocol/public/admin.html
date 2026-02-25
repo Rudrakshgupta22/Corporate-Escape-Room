@@ -439,7 +439,8 @@
                 '<p class="loading" id="loadingMsg">Fetching session data...</p>';
 
             try {
-                const res = await fetch(`/admin-data?key=${encodeURIComponent(KEY)}`);
+                const API_BASE = 'https://three-gates-protocol.onrender.com';
+                const res = await fetch(`${API_BASE}/admin-data?key=${encodeURIComponent(KEY)}`);
                 if (res.status === 403) {
                     document.getElementById('appContent').innerHTML =
                         '<p class="error">403 FORBIDDEN — Invalid access key.</p>';

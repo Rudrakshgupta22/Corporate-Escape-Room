@@ -387,7 +387,8 @@ async function postLog() {
     };
 
     try {
-        await fetch('/log', {
+        const API_BASE = 'https://three-gates-protocol.onrender.com';
+        await fetch(`${API_BASE}/log`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body),
